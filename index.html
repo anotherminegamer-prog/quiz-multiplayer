@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Quiz Lobby</title>
+<script src="/socket.io/socket.io.js"></script>
+<style>
+body{
+    font-family:Arial;
+    text-align:center;
+    background:#222;
+    color:white;
+}
+button{
+    padding:15px;
+    margin:10px;
+    font-size:18px;
+}
+#game{
+    display:none;
+}
+</style>
+</head>
+<body>
+
+<div id="lobby">
+    <h2>Lobby 🎮</h2>
+
+    <input id="name" placeholder="Seu nome">
+    <button onclick="join()">Entrar</button>
+
+    <h3>Jogadores conectados:</h3>
+    <div id="players"></div>
+
+    <button onclick="start()">Iniciar Partida</button>
+</div>
+
+<div id="game">
+    <h2>Capital do Brasil?</h2>
+
+    <button onclick="send(0)">São Paulo</button>
+    <button onclick="send(1)">Brasília</button>
+    <button onclick="send(2)">Rio</button>
+    <button onclick="send(3)">Salvador</button>
+
+    <div id="ranking"></div>
+</div>
+
+<script>
+const socket = io();
+
+function join(){
+    const name=document.getElementById("name").value;
+    socket.emit("join",name);
+}
+
+function start(){
+    socket.emit("startGame");
+}
+
+function send(answer){
+    socket.emit("answer",{answer});
+}
+
+socket.on("lobby",(players)=>{
+    document.getElementById("players").innerHTML=
+        players.map(p=>"<div>"+p+"</div>").join("");
+});
+
+socket.on("gameStarted",()=>{
+    document.getElementById("lobby").style.display="none";
+    document.getElementById("game").style.display="block";
+});
+
+socket.on("scores",(scores)=>{
+    let html="<h3>Ranking</h3>";
+    for(let p in scores){
+        html += p+": "+scores[p]+"<br>";
+    }
+    document.getElementById("ranking").innerHTML=html;
+});
+</script>
+
+</body>
+</html>
